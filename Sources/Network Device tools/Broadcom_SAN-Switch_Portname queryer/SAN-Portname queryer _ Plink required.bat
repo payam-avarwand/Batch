@@ -1,12 +1,12 @@
 @echo off
 
 REM ---------------------------------------------------------------------------------------------------------------------
-REM Since we have some Broadcom FC-Switches with 30 to 100 interfaces each,
+REM Since some Broadcom FC-Switches are available with 30 to 100 interfaces each,
 REM and the interfaces are named according to the device that is connected to them,
-REM this script gathers the names of all Interfaces on all FC-Switches into a text file as an output-File on the local Desktop.
+REM This script gathers the names of all Interfaces on all FC-Switches into a text file as an output-File on the local Desktop.
 REM Notes:
-    REM the admin password is entered as a plain text.
-    REM to run this script on a system, the Plink must be installed or at list reachable.
+    REM plain text = Low security
+    REM to run this script on a system, the Plink must be installed or at least reachable.
 	REM temporary files will be created next to the script file in the the hidden form, no matter where the script file is located.
 	
 REM Created:      Payam A. - 20.11.2024
@@ -32,8 +32,7 @@ setlocal enabledelayedexpansion
 REM ---------------------------------------------------------------------------------------------------------------------
 REM Variable declaration:
 
-REM set "Dt=%date%"
-for /f "tokens=2,3,4 delims=/- " %%a in ('date /t') do set "Dt=%%b.%%a.%%c"
+set "Dt=%date%"
 set "Tm=%time:~0,8%"
 set "temp=%~dp0"
 set "sws=%temp%_"
@@ -46,17 +45,15 @@ REM Create files
 
 REM 1st one: IP-addresses of all FC-Switches will be included in a temporary file:
 > "%sws%" (
-    echo 18.105.40.11
-    echo 18.105.40.13
-    echo 18.105.40.14
-    echo 18.105.40.17
-    echo 18.105.40.18
+	echo 20.160.30.11
+	echo 20.160.30.13
+	echo 20.160.30.14
 )
 attrib +h "%sws%"
 
 REM 2d one
 > "%PW%" (
-    echo P@s$woRD
+    echo P@s5w0Rd
 )
 attrib +h "%PW%"
 
@@ -80,7 +77,7 @@ for /f "delims=" %%I in (%sws%) do (
 		(echo --------------------------------------) >> "%Output%"
 		echo Querying  %%A ...
 		REM Use plink to connect to the switch and run the command
-		echo y | plink.exe -no-antispoof -ssh -C username@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
+		echo y | plink.exe -no-antispoof -ssh -C user@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
 		echo. >> "%Output%"
 		)
 )

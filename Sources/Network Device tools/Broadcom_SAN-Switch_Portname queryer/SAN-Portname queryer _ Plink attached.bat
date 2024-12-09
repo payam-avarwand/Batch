@@ -1,14 +1,15 @@
 @echo off
 
 REM ---------------------------------------------------------------------------------------------------------------------
-REM Since we have some Broadcom FC-Switches with 30 to 100 interfaces each,
+REM Since some Broadcom FC-Switches are available with 30 to 100 interfaces each,
 REM and the interfaces are named according to the device that is connected to them,
-REM this script gathers the names of all Interfaces on all FC-Switches into a text file as an output-File on the local Desktop.
+REM This script gathers the names of all Interfaces on all FC-Switches into a text file as an output-File on the local Desktop.
 REM Notes:
-    REM the admin password is entered as a plain text.
-    REM after start the script, it checks if Plink is available and reachable, if not, a Plink.exe file will be created and at the end will be removed automatically.
-	REM if the self created Plink will be created and used, the first time we need to confirm the HostKeys of all Switches, when it asks to confirm.
-	
+    REM plain text = Low security
+    REM to run this script on a system, the Plink doesn't need to be installed before!
+    REM It checks if Plink is available and reachable, if not, then a Plink.exe file will be created and used and at the end will be removed automatically.
+	REM If the self created Plink will be created and used, the first time we need to confirm the HostKeys of all Switches, when it asks to confirm.
+
 REM Created:      Payam A. - 20.11.2024
 REM Last change:  Payam A. - 05.12.2024
 
@@ -19,8 +20,7 @@ setlocal enabledelayedexpansion
 REM ---------------------------------------------------------------------------------------------------------------------
 REM Variable declaration:
 
-REM set "Dt=%date%"
-for /f "tokens=2,3,4 delims=/- " %%a in ('date /t') do set "Dt=%%b.%%a.%%c"
+set "Dt=%date%"
 set "Tm=%time:~0,8%"
 set "temp=c:\temp\"
 set "sws=%temp%_"
@@ -29,6 +29,13 @@ set "PW=%temp%__"
 set "COM=portname"
 set "plink_base64_path=%temp%plink.b64"
 set "plink_exe_path=%temp%plink.exe"
+
+
+REM Hostkeys for each switch
+
+set "hostkey_20.160.30.11=9d:f9:87:73:21:4d:ee:81:73:f5:b0:ba:25:a2:6a:54"
+set "hostkey_20.160.30.13=13:b5:15:3a:ed:94:ae:4f:fe:30:a1:ab:84:54:07:af"
+set "hostkey_20.160.30.14=3a:37:21:61:6b:1d:df:f2:52:78:3d:30:39:c3:5f:2b"
 
 
 REM ---------------------------------------------------------------------------------------------------------------------
@@ -47,17 +54,15 @@ REM Create files
 
 REM 1st one
 > "%sws%" (
-    echo 18.105.40.11
-    echo 18.105.40.13
-    echo 18.105.40.14
-    echo 18.105.40.17
-    echo 18.105.40.18
+	echo 20.160.30.11
+	echo 20.160.30.13
+	echo 20.160.30.14
 )
 attrib +h "%sws%"
 
 REM 2d one
 > "%PW%" (
-    echo P@s$woRD
+    echo P@s5w0Rd
 )
 attrib +h "%PW%"
 
@@ -85,9 +90,13 @@ if not errorlevel 1 (
 		for /f "tokens=2 delims=: " %%A in ('nslookup !IP! ^| findstr "Name:"') do (
 			echo .: %%A :. >> "%Output%"
 			(echo --------------------------------------) >> "%Output%"
-			echo "Querying  %%A ..."
+			echo Querying  %%A ...
+			
+			REM Dynamically retrieve the hostkey for the current IP
+			set "hostkey=!hostkey_%%I!"
+			
 			REM Use plink to connect to the switch and run the command
-			echo y | plink.exe -no-antispoof -ssh -C username@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
+			echo y | plink.exe -no-antispoof -ssh -hostkey "!hostkey!" -C user@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
 			echo. >> "%Output%"
 			)
 	)
@@ -21303,9 +21312,14 @@ if not errorlevel 1 (
 		for /f "tokens=2 delims=: " %%A in ('nslookup !IP! ^| findstr "Name:"') do (
 			echo .: %%A :. >> "%Output%"
 			(echo --------------------------------------) >> "%Output%"
-			echo "Querying  %%A ..."
+			echo Querying  %%A ...
+
+
+			REM Dynamically retrieve the hostkey for the current IP
+			set "hostkey=!hostkey_%%I!"
+			
 			REM Use plink to connect to the switch and run the command
-			echo y | %plink_exe_path% -no-antispoof -ssh -C username@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
+			echo y | %plink_exe_path% -no-antispoof -ssh -hostkey "!hostkey!" -C user@!IP! -pw "!PASSWORD!" "!COM!" >> "%Output%"
 			echo. >> "%Output%"
 			)
 		)
@@ -21318,7 +21332,7 @@ REM make a 1 sec delay and remove the temporary files
 timeout /t 1 >nul
 if exist "%PW%" del /A:H "%PW%"
 if exist "%sws%" del /A:H "%sws%"
-
+if exist "%plink_exe_path%" del "%plink_exe_path%"
 
 REM ---------------------------------------------------------------------------------------------------------------------
 REM End message and finish

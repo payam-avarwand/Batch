@@ -5,9 +5,11 @@ REM Since we have some Cisco-ISR devices with some interfaces each,
 REM and the interfaces are named according to the device that is connected to them,
 REM this script gathers the names of all Interfaces on all ISRs, through the command "Show interfaces Status", into a text file as an output-File on the local Desktop.
 REM Notes:
-    REM the admin password is entered as a plain text.
+    REM plain text = Low security
     REM to run this script on a system, the Plink doesn't need to be installed before!
-    
+    REM It checks if Plink is available and reachable, if not, then a Plink.exe file will be created and used and at the end will be removed automatically.
+	REM if the self created Plink will be created and used, the first time we need to confirm the HostKeys of all Switches, when it asks to confirm.
+
 REM Created:      Payam A. - 01.11.2024
 REM Last change:  Payam A. - 05.12.2024
 
@@ -21315,7 +21317,7 @@ REM make a 1 sec delay and remove the temporary files
 timeout /t 1 >nul
 if exist "%PW%" del /A:H "%PW%"
 if exist "%sws%" del /A:H "%sws%"
-
+if exist "%plink_exe_path%" del "%plink_exe_path%"
 
 REM ---------------------------------------------------------------------------------------------------------------------
 REM End message and finish
