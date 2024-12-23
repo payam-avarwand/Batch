@@ -5,7 +5,7 @@ REM Since we have some Cisco-ISR devices with some interfaces each,
 REM and the interfaces are named according to the device that is connected to them,
 REM this script gathers the names of all Interfaces on all ISRs, through the command "Show interfaces Status", into a text file as an output-File on the local Desktop.
 REM Notes:
-    REM plain text = Low security
+    REM encoded pass = better security
     REM to run this script on a system, the Plink doesn't need to be installed before!
     REM It checks if Plink is available and reachable, if not, then a Plink.exe file will be created and used and at the end will be removed automatically.
 	REM if the self created Plink will be created and used, the first time we need to confirm the HostKeys of all Switches, when it asks to confirm.
@@ -24,9 +24,10 @@ REM set "Dt=%date%"
 for /f "tokens=2,3,4 delims=/- " %%a in ('date /t') do set "Dt=%%b.%%a.%%c"
 set "Tm=%time:~0,8%"
 set "temp=c:\temp\"
+set "Bb=payam1"
 set "sws=%temp%_"
 set "Output=%USERPROFILE%\Desktop\Show Interface Status _ %DT%.txt"
-set "PW=%temp%__"
+set "wp=MTIz"
 set "COM=show interfaces status"
 set "plink_base64_path=%temp%plink.b64"
 set "plink_exe_path=%temp%plink.exe"
@@ -53,12 +54,6 @@ REM 1st one
 attrib +h "%sws%"
 
 REM 2d one
-> "%PW%" (
-    echo 123
-)
-attrib +h "%PW%"
-
-REM 3d one
 > "%Output%" echo                                 ..::Interfaces::..& echo.
 >> "%Output%" echo                             .: %Dt% ^| %Tm% :.& echo.
 >> "%Output%" echo ^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|^|& echo. & echo.
@@ -77,14 +72,14 @@ if not errorlevel 1 (
     REM Loop through each line in the IP file
     for /f "delims=" %%I in (%sws%) do (
         set "IP=%%I"
-        for /f "usebackq delims=" %%P in ("%PW%") do set "PASSWORD=%%P"
-        REM Extract the name using nslookup
+        for /f "delims=" %%P in ('powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%wp%'))"') do set "Aa=%%P"
+        REM nslookup
         for /f "tokens=2 delims=: " %%A in ('nslookup !IP! ^| findstr "Name:"') do (
             echo .: %%A :. >> "%Output%"
             (echo ----------------------------------------------------------------------------------------) >> "%Output%"
             echo "Querying  %%A ..."
             REM Use plink to connect to the switch and run the command
-            echo y | plink.exe -no-antispoof -ssh -C payam1@!IP! -pw "!PASSWORD!" "!COM!" | findstr /r /v "^$" >> "%Output%"
+            echo y | plink.exe -no-antispoof -ssh -C !Bb!@!IP! -pw "!Aa!" "!COM!" | findstr /r /v "^$" >> "%Output%"
             (echo ----------------------------------------------------------------------------------------) >> "%Output%"
             echo. >> "%Output%"
             )
@@ -21296,14 +21291,15 @@ if not errorlevel 1 (
 
     for /f "delims=" %%I in (%sws%) do (
         set "IP=%%I"
-        for /f "usebackq delims=" %%P in ("%PW%") do set "PASSWORD=%%P"
-        REM Extract the name using nslookup
+        for /f "delims=" %%P in ('powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%wp%'))"') do set "Aa=%%P"
+        
+		REM Extract the name using nslookup
         for /f "tokens=2 delims=: " %%A in ('nslookup !IP! ^| findstr "Name:"') do (
             echo .: %%A :. >> "%Output%"
             (echo ----------------------------------------------------------------------------------------) >> "%Output%"
             echo "Querying  %%A ..."
             REM Use plink to connect to the switch and run the command
-            echo y | %plink_exe_path% -no-antispoof -ssh -C payam1@!IP! -pw "!PASSWORD!" "!COM!" | findstr /r /v "^$" >> "%Output%"
+            echo y | %plink_exe_path% -no-antispoof -ssh -C !Bb!@!IP! -pw "!Aa!" "!COM!" | findstr /r /v "^$" >> "%Output%"
             (echo ----------------------------------------------------------------------------------------) >> "%Output%"
             echo. >> "%Output%"
             )
@@ -21315,7 +21311,6 @@ REM ----------------------------------------------------------------------------
 REM make a 1 sec delay and remove the temporary files
 
 timeout /t 1 >nul
-if exist "%PW%" del /A:H "%PW%"
 if exist "%sws%" del /A:H "%sws%"
 if exist "%plink_exe_path%" del "%plink_exe_path%"
 
