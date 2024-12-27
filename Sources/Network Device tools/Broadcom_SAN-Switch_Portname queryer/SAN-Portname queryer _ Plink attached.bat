@@ -8,7 +8,7 @@ REM Notes:
     REM plain text = Low security
     REM to run this script on a system, the Plink doesn't need to be installed before!
     REM It checks if Plink is available and reachable, if not, then a Plink.exe file will be created and used and at the end will be removed automatically.
-	REM If the self created Plink will be created and used, the first time we need to confirm the HostKeys of all Switches, when it asks to confirm.
+	REM to use the script everywhere in the network without any error or additional reports, the hostkeys of Switches is required, as it's added below.
 
 REM Created:      Payam A. - 20.11.2024
 REM Last change:  Payam A. - 05.12.2024
