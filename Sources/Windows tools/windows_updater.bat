@@ -1,0 +1,2 @@
+@echo off
+PowerShell -Command "Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"Install-Module PSWindowsUpdate -Force; Get-WindowsUpdate; Install-WindowsUpdate\"' -Verb RunAs"
